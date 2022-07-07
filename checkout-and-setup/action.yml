@@ -1,0 +1,48 @@
+name: "checkout-and-setup"
+description: "Checkout the right branch and optionally setup Java"
+inputs:
+  java-version:
+    description: "Java version to setup"
+    default: 11
+  cache:
+    description: "Java setup cache type"
+    default: 'maven'
+
+runs:
+  using: composite
+  steps:
+      - uses: actions/checkout@v3
+        with:
+          # checkout all commits, as the build result depends on `git describe` equivalent
+          # and to be able to determine merge base for GIB
+          fetch-depth: 0
+          ref: |
+            ${{ github.event_name == 'repository_dispatch' &&
+                github.event.client_payload.slash_command.sha != '' &&
+                github.event.client_payload.pull_request.head.sha == github.event.client_payload.slash_command.sha &&
+                format('refs/pull/{0}/head', github.event.client_payload.pull_request.number) || '' }}
+      - name: Verify commit
+        shell: bash
+        run: |
+          expected=${{ github.event_name == 'repository_dispatch' &&
+                github.event.client_payload.slash_command.sha != '' &&
+                github.event.client_payload.pull_request.head.sha == github.event.client_payload.slash_command.sha &&
+                github.event.client_payload.pull_request.head.sha || '' }}
+          actual=$(git rev-parse)
+          if [ -n "$expected" ] && [ "$actual" != "$expected" ]; then
+            echo >&2 "Expected to checkout $expected but got $actual"
+            exit 1
+          fi
+      - name: Fetch base ref to find merge-base for GIB
+        shell: bash
+        run: .github/bin/git-fetch-base-ref.sh
+      - uses: actions/setup-java@v3
+        if: ${{ inputs.java-version != '' }}
+        with:
+          distribution: 'zulu'
+          java-version: ${{ inputs.java-version }}
+          cache: ${{ inputs.cache }}
+      - name: Configure Problem Matchers
+        if: ${{ inputs.java-version != '' }}
+        shell: bash
+        run: echo "::add-matcher::.github/problem-matcher.json"
