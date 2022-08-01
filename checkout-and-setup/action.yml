@@ -3,7 +3,7 @@ description: "Checkout the right branch and optionally setup Java"
 inputs:
   java-version:
     description: "Java version to setup"
-    default: 11
+    default: 17
   cache:
     description: "Java setup cache type"
     default: 'maven'
