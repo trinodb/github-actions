@@ -18,15 +18,15 @@ runs:
           fetch-depth: 0
           ref: |
             ${{ github.event_name == 'repository_dispatch' &&
-                github.event.client_payload.slash_command.sha != '' &&
-                github.event.client_payload.pull_request.head.sha == github.event.client_payload.slash_command.sha &&
+                github.event.client_payload.slash_command.named.sha != '' &&
+                github.event.client_payload.pull_request.head.sha == github.event.client_payload.slash_command.named.sha &&
                 format('refs/pull/{0}/head', github.event.client_payload.pull_request.number) || '' }}
       - name: Verify commit
         shell: bash
         run: |
           expected=${{ github.event_name == 'repository_dispatch' &&
-                github.event.client_payload.slash_command.sha != '' &&
-                github.event.client_payload.pull_request.head.sha == github.event.client_payload.slash_command.sha &&
+                github.event.client_payload.slash_command.named.sha != '' &&
+                github.event.client_payload.pull_request.head.sha == github.event.client_payload.slash_command.named.sha &&
                 github.event.client_payload.pull_request.head.sha || '' }}
           actual=$(git rev-parse)
           if [ -n "$expected" ] && [ "$actual" != "$expected" ]; then
