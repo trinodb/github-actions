@@ -26,9 +26,8 @@ runs:
         run: |
           expected=${{ github.event_name == 'repository_dispatch' &&
                 github.event.client_payload.slash_command.args.named.sha != '' &&
-                github.event.client_payload.pull_request.head.sha == github.event.client_payload.slash_command.args.named.sha &&
                 github.event.client_payload.pull_request.head.sha || '' }}
-          actual=$(git rev-parse)
+          actual=$(git log -1 --format='%H')
           if [ -n "$expected" ] && [ "$actual" != "$expected" ]; then
             echo >&2 "Expected to checkout $expected but got $actual"
             exit 1
