@@ -13,6 +13,12 @@ inputs:
   github_token:
     description: "GitHub token to authenticate with"
     default: ${{ github.token }}
+  run_id:
+    description: "Current workflow run id"
+    default: ${{ github.run_id }}
+  run_attempt:
+    description: "Current workflow run attempt number"
+    default: ${{ github.run_attempt }}
 
 runs:
   using: composite
@@ -54,4 +60,33 @@ runs:
             status: 'completed',
             conclusion: process.env.conclusion
           });
+          return result;
+    - uses: actions/github-script@v6
+      id: comment
+      if: ${{ always() }}
+      env:
+        number: ${{ inputs.pull_request_number }}
+        run_id: ${{ inputs.run_id }}
+        run_attempt: ${{ inputs.run_attempt }}
+        conclusion: ${{ inputs.conclusion }}
+      with:
+        github-token: ${{ inputs.github_token }}
+        script: |
+          const { data: pull } = await github.rest.pulls.get({
+            ...context.repo,
+            pull_number: process.env.number
+          });
+          const { data: run } = await github.rest.actions.getWorkflowRunAttempt({
+            ...context.repo,
+            run_id: process.env.run_id,
+            attempt_number: process.env.attempt_number,
+            exclude_pull_requests: true
+          });
+
+          const { data: result } = await github.rest.issues.createCommend({
+            ...context.repo,
+            issue_number: process.env.number,
+            "The CI workflow run with tests that require additional secrets finished as " + process.env.conclusion + ": " + run.html_url
+          });
+
           return result;
