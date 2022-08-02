@@ -24,7 +24,7 @@ runs:
         shell: bash
         if: github.event_name == 'repository_dispatch' && github.event.client_payload.slash_command.args.named.sha == ''
         run: |
-          echo >&2 "Dispatched from a slash command but missing the `sha` argument"
+          echo >&2 "Dispatched from a slash command but missing the 'sha' argument"
           exit 1
       - name: Verify commit
         shell: bash
