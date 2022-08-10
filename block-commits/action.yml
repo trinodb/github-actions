@@ -1,0 +1,19 @@
+name: "Block Merge and Autosquash Commits"
+description: "Prevent merging pull requests that contain merge commits and commits with messages prefixed with fixup! or squash!"
+inputs:
+  repo-token:
+    description: "Token for the repo."
+    required: true
+    default: ${{ github.token }}
+  action-merge:
+    description: 'Action to take when merge commits are found. One of: none, fail, request-changes; defaults to fail.'
+    required: true
+    default: 'fail'
+  action-fixup:
+    description: 'Action to take when fixup commits are found. One of: none, fail, request-changes; defaults to fail.'
+    required: true
+    default: 'fail'
+
+runs:
+  using: "docker"
+  image: "Dockerfile"
