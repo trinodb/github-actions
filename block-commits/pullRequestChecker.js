@@ -1,12 +1,15 @@
 const {info} = require('@actions/core');
-const {
-  context,
-  getOctokit,
-} = require('@actions/github');
+const {GitHub} = require('@actions/github/lib/utils');
+const {retry} = require('@octokit/plugin-retry');
+const {context} = require('@actions/github');
 
 class PullRequestChecker {
     constructor(repoToken, actionMerge, actionFixup) {
-        this.client = getOctokit(repoToken);
+        const RetryOctokit = GitHub.plugin(retry);
+        this.client = new RetryOctokit({
+            auth: repoToken,
+            request: {retries: 3},
+        });
         this.actionMerge = actionMerge;
         this.actionFixup = actionFixup;
     }
