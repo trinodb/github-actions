@@ -17,6 +17,7 @@ jobs:
           cache-dependency-path: |
             block-commits/package-lock.json
             github-app-token/yarn.lock
+            slash-command-dispatch/package-lock.json
 
       - name: Build and test block-commits
         working-directory: block-commits
@@ -32,9 +33,16 @@ jobs:
           yarn run yarn-deduplicate --fail
           yarn run build
 
+      - name: Build and test slash-command-dispatch
+        working-directory: slash-command-dispatch
+        run: |
+          npm ci
+          npm run build
+
       - name: Compare the expected and actual dist/ directories
         run: |
-          if [ "$(git diff --ignore-space-at-eol github-app-token/dist/ | wc -l)" -gt "0" ]; then
+          if [ "$(git diff --ignore-space-at-eol github-app-token/dist/ | wc -l)" -gt "0" ] ||
+             [ "$(git diff --ignore-space-at-eol slash-command-dispatch/dist/ | wc -l)" -gt "0" ]; then
             echo "Detected uncommitted changes after build.  See status below:"
             git diff
             exit 1
@@ -46,4 +54,6 @@ jobs:
         if: ${{ failure() && steps.diff.conclusion == 'failure' }}
         with:
           name: dist
-          path: github-app-token/dist/
+          path: |
+            github-app-token/dist/
+            slash-command-dispatch/dist/
