@@ -16,11 +16,34 @@ jobs:
           cache: 'npm'
           cache-dependency-path: |
             block-commits/package-lock.json
-      - working-directory: block-commits
-        run: npm ci
-      - working-directory: block-commits
-        run: npm run build --if-present
-      - working-directory: block-commits
-        run: npm test
+            github-app-token/yarn.lock
 
+      - name: Build and test block-commits
+        working-directory: block-commits
+        run: |
+          npm ci
+          npm run build --if-present
+          npm test
 
+      - name: Build and test github-app-token
+        working-directory: github-app-token
+        run: |
+          yarn install --frozen-lockfile
+          yarn run yarn-deduplicate --fail
+          yarn run build
+
+      - name: Compare the expected and actual dist/ directories
+        run: |
+          if [ "$(git diff --ignore-space-at-eol github-app-token/dist/ | wc -l)" -gt "0" ]; then
+            echo "Detected uncommitted changes after build.  See status below:"
+            git diff
+            exit 1
+          fi
+        id: diff
+
+      # If index.js was different than expected, upload the expected version as an artifact
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() && steps.diff.conclusion == 'failure' }}
+        with:
+          name: dist
+          path: github-app-token/dist/
