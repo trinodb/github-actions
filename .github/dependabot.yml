@@ -1,9 +1,9 @@
 version: 2
 updates:
-  - package-ecosystem: 'npm'
-    directory: '/block-commits'
+  - package-ecosystem: "npm"
+    directory: "/block-commits"
     schedule:
-      interval: 'monthly'
+      interval: "monthly"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
