@@ -2,7 +2,13 @@ name: ci
 
 on:
   push:
+    branches:
+      - main
+    paths-ignore:
+      - 'action-surefire-report/**'
   pull_request:
+    paths-ignore:
+      - 'action-surefire-report/**'
 
 jobs:
   build:

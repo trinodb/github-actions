@@ -1,0 +1,91 @@
+name: action-surefire-report
+
+on:
+  push:
+    paths:
+      - 'action-surefire-report/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+    defaults:
+      run:
+        working-directory: ./action-surefire-report
+    steps:
+      - uses: actions/checkout@v3
+
+      # generate artifacts used for tests
+      - uses: actions/setup-java@v3
+        with:
+          java-version: 8
+          distribution: 'temurin'
+          cache: 'maven'
+      - run: |
+          cd tests && mvn clean test --batch-mode -Dmaven.test.failure.ignore=true
+      - uses: ./action-surefire-report
+        if: github.ref != 'refs/heads/main'
+        with:
+          check_name: Example Surefire Test Report
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Test with pytest
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pytest  --junit-xml=python/report.xml python/ || exit 0
+      - uses: ./action-surefire-report
+        if: github.ref != 'refs/heads/main'
+        with:
+          check_name: Example Pytest Report
+          report_paths: python/report.xml
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.18.x
+      - run: |
+          cd go &&
+            go install github.com/jstemmer/go-junit-report/v2@latest &&
+            go test -v 2>&1 ./... | go-junit-report -out report.xml
+      - uses: ./action-surefire-report
+        if: github.ref != 'refs/heads/main'
+        with:
+          check_name: Example Go Report
+          report_paths: go/report.xml
+          file_name_in_stack_trace: true
+
+      # build and test the action
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16.x
+          cache: 'npm'
+          cache-dependency-path: |
+            action-surefire-report/package-lock.json
+
+      - name: Build and test
+        run: |
+          npm ci
+          npm run eslint
+          npm run test
+          npm run package
+
+      - name: Compare the expected and actual dist/ directories
+        run: |
+          if [ "$(git diff --ignore-space-at-eol dist/ | wc -l)" -gt "0" ]; then
+            echo "Detected uncommitted changes after build.  See status below:"
+            git diff
+            exit 1
+          fi
+        id: diff
+
+      # If index.js was different than expected, upload the expected version as an artifact
+      - uses: actions/upload-artifact@v3
+        if: ${{ failure() && steps.diff.conclusion == 'failure' }}
+        with:
+          name: dist
+          path: |
+            action-surefire-report/dist/

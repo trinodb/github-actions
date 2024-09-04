@@ -1,0 +1,53 @@
+name: 'Surefire Report'
+description: 'Report Surefire test results as annotations on Github Pull Request [junit, failsafe]'
+branding:
+  icon: 'check-square'
+  color: 'green'
+inputs:
+  github_token:
+    description: 'GITHUB_TOKEN'
+    required: true
+    default: ${{ github.token }}
+  report_paths:
+    description: 'surefire/failsafe/junit compatible xml report paths in glob format'
+    required: false
+    default: '**/surefire-reports/TEST-*.xml, **/failsafe-reports/TEST-*.xml'
+  create_check:
+    description: 'create a new check with annotations'
+    required: false
+    default: 'true'
+  check_name:
+    description: 'check name for test reports'
+    required: false
+    default: 'Test Report'
+  commit:
+    description: 'commit sha to update the status'
+    required: false
+  fail_on_test_failures:
+    description: 'fail run if there were test failures'
+    required: false
+    default: 'false'
+  fail_if_no_tests:
+    description: 'fail run if there were no test results found'
+    required: false
+    default: 'true'
+  skip_publishing:
+    description: 'skip test report publishing'
+    required: false
+    default: 'false'
+  file_name_in_stack_trace:
+    description: 'get filename from stack trace'
+    required: false
+    default: 'false'
+  github_base_url:
+    description: 'if you use Github Enterprise, you can set this to the URL of your server (e.g. https://github.myorg.com/api/v3)'
+    required: false
+    default: ""
+
+outputs:
+  outcome:
+     description: 'the test outcome, either `success` or `failure`'
+
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
