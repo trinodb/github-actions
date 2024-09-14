@@ -1,9 +1,23 @@
 version: 2
 updates:
   - package-ecosystem: "npm"
-    directory: "/block-commits"
+    directories:
+      - "/action-surefire-report"
+      - "/block-commits"
+      - "/github-app-token"
+      - "/slash-command-dispatch"
     schedule:
       interval: "monthly"
+    groups:
+      dependency-updates:
+        applies-to: version-updates
+        update-types:
+        - major
+        - minor
+        - patch
+      security-updates:
+        applies-to: security-updates
+        dependency-type: production
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
