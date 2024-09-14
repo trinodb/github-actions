@@ -74,3 +74,4 @@ target/
 junit.xml
 report.xml
 __pycache__
+venv
