@@ -74,19 +74,19 @@ async function parseFile(file, isFilenameInStackTrace) {
             }
             const stackTrace = failures.map(failure => failure.text()).join('').trim();
             const message = (
-                failures.map(failure => failure.attr('message')?.value()).join('') ||
+                failures.map(failure => failure.getAttribute('message')?.value()).join('') ||
                 stackTrace.split('\n').slice(0, 2).join('\n')
             ).trim();
 
             const { filename, filenameWithPackage, line } = resolveFileAndLine(
-                testcase.attr('file')?.value() || '',
-                testcase.attr('classname')?.value() || '',
+                testcase.getAttribute('file')?.value() || '',
+                testcase.getAttribute('classname')?.value() || '',
                 stackTrace,
                 isFilenameInStackTrace
             );
 
             const path = await resolvePath(filenameWithPackage);
-            const title = `${filename}.${testcase.attr('name')?.value()}`;
+            const title = `${filename}.${testcase.getAttribute('name')?.value()}`;
             core.info(`${path}:${line} | ${message.replace(/\n/g, ' ')}`);
 
             annotations.push({

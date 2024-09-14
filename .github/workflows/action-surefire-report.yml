@@ -15,10 +15,10 @@ jobs:
       run:
         working-directory: ./action-surefire-report
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       # generate artifacts used for tests
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           java-version: 8
           distribution: 'temurin'
@@ -43,9 +43,9 @@ jobs:
         with:
           check_name: Example Pytest Report
           report_paths: python/report.xml
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.18.x
+          go-version: 1.23.x
       - run: |
           cd go &&
             go install github.com/jstemmer/go-junit-report/v2@latest &&
@@ -59,9 +59,9 @@ jobs:
 
       # build and test the action
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: 16.x
+          node-version: 20
           cache: 'npm'
           cache-dependency-path: |
             action-surefire-report/package-lock.json
@@ -83,7 +83,7 @@ jobs:
         id: diff
 
       # If index.js was different than expected, upload the expected version as an artifact
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: ${{ failure() && steps.diff.conclusion == 'failure' }}
         with:
           name: dist

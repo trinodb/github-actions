@@ -1,4 +1,4 @@
-FROM node:16-bullseye-slim
+FROM node:20-bookworm-slim
 
 COPY dist /dist
 
