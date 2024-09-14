@@ -2,8 +2,6 @@
 [![CI](https://github.com/peter-evans/slash-command-dispatch/workflows/CI/badge.svg)](https://github.com/peter-evans/slash-command-dispatch/actions?query=workflow%3ACI)
 [![GitHub Marketplace](https://img.shields.io/badge/Marketplace-Slash%20Command%20Dispatch-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAM6wAADOsB5dZE0gAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAERSURBVCiRhZG/SsMxFEZPfsVJ61jbxaF0cRQRcRJ9hlYn30IHN/+9iquDCOIsblIrOjqKgy5aKoJQj4O3EEtbPwhJbr6Te28CmdSKeqzeqr0YbfVIrTBKakvtOl5dtTkK+v4HfA9PEyBFCY9AGVgCBLaBp1jPAyfAJ/AAdIEG0dNAiyP7+K1qIfMdonZic6+WJoBJvQlvuwDqcXadUuqPA1NKAlexbRTAIMvMOCjTbMwl1LtI/6KWJ5Q6rT6Ht1MA58AX8Apcqqt5r2qhrgAXQC3CZ6i1+KMd9TRu3MvA3aH/fFPnBodb6oe6HM8+lYHrGdRXW8M9bMZtPXUji69lmf5Cmamq7quNLFZXD9Rq7v0Bpc1o/tp0fisAAAAASUVORK5CYII=)](https://github.com/marketplace/actions/slash-command-dispatch)
 
-Forked from [peter-evans/slash-command-dispatch](https://github.com/peter-evans/slash-command-dispatch) with no changes to defend against changes with a hash collision and repo deletion.
-
 A GitHub action that facilitates ["ChatOps"](https://www.pagerduty.com/blog/what-is-chatops/) by creating dispatch events for slash commands.
 
 ### How does it work?
@@ -29,7 +27,7 @@ See it in action with the following live demos.
 
 - [ChatOps Demo in Issues](https://github.com/peter-evans/slash-command-dispatch/issues/3)
 - [ChatOps Demo in Pull Requests](https://github.com/peter-evans/slash-command-dispatch/pull/8)
-- [Slash command code formatting - Python](https://github.com/peter-evans/slash-command-dispatch/pull/11)
+- [Slash command code formatting - Python](https://github.com/peter-evans/slash-command-dispatch/pull/28)
 
 ## Documentation
 
@@ -38,7 +36,7 @@ See it in action with the following live demos.
 - [Standard configuration](#standard-configuration)
 - [Advanced configuration](docs/advanced-configuration.md)
 - [Workflow dispatch](docs/workflow-dispatch.md)
-- [Updating to v3](docs/updating.md)
+- [Updating to v4](docs/updating.md)
 
 ## Dispatching commands
 
@@ -56,7 +54,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Slash Command Dispatch
-        uses: peter-evans/slash-command-dispatch@v3
+        uses: peter-evans/slash-command-dispatch@v4
         with:
           token: ${{ secrets.PAT }}
           commands: |
@@ -93,6 +91,9 @@ This action creates [repository_dispatch](https://docs.github.com/en/actions/ref
 The default `GITHUB_TOKEN` does not have scopes to create these events, so a `repo` scoped [PAT](https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token) is required.
 If you will be dispatching commands to public repositories *only* then you can use the more limited `public_repo` scope.
 
+When using the action in a GitHub organization, the user the PAT is created on must be a member of the organization.
+Additionally, the PAT should be given the `org:read` scope.
+
 #### `reaction-token`
 
 If you don't specify a token for `reaction-token` it will use the default `GITHUB_TOKEN`.
@@ -101,7 +102,7 @@ You can use a [PAT](https://docs.github.com/en/github/authenticating-to-github/c
 
 ```yml
       - name: Slash Command Dispatch
-        uses: peter-evans/slash-command-dispatch@v3
+        uses: peter-evans/slash-command-dispatch@v4
         with:
           token: ${{ secrets.PAT }}
           reaction-token: ${{ secrets.PAT }}
@@ -177,7 +178,7 @@ It will also contain any static arguments if configured.
 
 To demonstrate, take the following configuration as an example.
 ```yml
-      - uses: peter-evans/slash-command-dispatch@v3
+      - uses: peter-evans/slash-command-dispatch@v4
         with:
           token: ${{ secrets.PAT }}
           commands: |
@@ -227,7 +228,7 @@ The properties in the `slash_command` context from the above example can be used
 #### `github` and `pull_request` contexts
 
 The payload contains the `github` context of the `issue_comment` event at path `github.event.client_payload.github`.
-Additionally, if the comment was made in a pull request, the action calls the [GitHub API to fetch the pull request detail](https://docs.github.com/en/rest/reference/pulls#get-a-pull-request) and attach it to the payload at path `github.event.client_payload.pull_request`.
+Additionally, if the comment was made in a pull request, the action calls the [GitHub API to fetch the pull request detail](https://docs.github.com/en/rest/pulls/pulls#get-a-pull-request) and attaches it to the payload at path `github.event.client_payload.pull_request`.
 
 You can inspect the payload with the following step.
 ```yml
@@ -247,12 +248,12 @@ The simplest response is to add a :tada: reaction to the comment.
 
 ```yml
       - name: Add reaction
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.PAT }}
           repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
           comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
-          reaction-type: hooray
+          reactions: hooray
 ```
 
 Another option is to reply with a new comment containing a link to the run output.
@@ -260,10 +261,10 @@ Another option is to reply with a new comment containing a link to the run outpu
 ```yml
       - name: Create URL to the run output
         id: vars
-        run: echo ::set-output name=run-url::https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID
+        run: echo "run-url=https://github.com/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" >> $GITHUB_OUTPUT
 
       - name: Create comment
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.PAT }}
           repository: ${{ github.event.client_payload.github.payload.repository.full_name }}

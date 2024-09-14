@@ -2,6 +2,7 @@ import * as core from '@actions/core'
 import {Octokit, PullsGetResponseData} from './octokit-client'
 import {Command, SlashCommandPayload} from './command-helper'
 import {inspect} from 'util'
+import * as utils from './utils'
 
 type ReposCreateDispatchEventParamsClientPayload = {
   [key: string]: ReposCreateDispatchEventParamsClientPayloadKeyString
@@ -60,7 +61,7 @@ export class GitHubHelper {
     // Returns 'READ', 'TRIAGE', 'WRITE', 'MAINTAIN', 'ADMIN'
     const query = `query CollaboratorPermission($owner: String!, $repo: String!, $collaborator: String) {
       repository(owner:$owner, name:$repo) {
-        collaborators(query: $collaborator) {
+        collaborators(login: $collaborator) {
           edges {
             permission
           }
@@ -101,8 +102,8 @@ export class GitHubHelper {
         comment_id: commentId,
         content: reaction
       })
-    } catch (error: any) {
-      core.debug(error)
+    } catch (error) {
+      core.debug(utils.getErrorMessage(error))
       core.warning(`Failed to set reaction on comment ID ${commentId}.`)
     }
   }
