@@ -32,7 +32,7 @@ jobs:
         run: |
           branch=${{ github.event.client_payload.slash_command.args.named.branch }}
           if [[ -z "$branch" ]]; then branch="main"; fi
-          echo ::set-output name=branch::$branch
+          echo "branch=$branch" >> $GITHUB_OUTPUT
 
       # Checkout the branch to test
       - uses: actions/checkout@v3
@@ -50,12 +50,12 @@ jobs:
 
       # Add reaction to the comment
       - name: Add reaction
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.PAT }}
           repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
           comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
-          reaction-type: hooray
+          reactions: hooray
 ```
 
 ### pytest
@@ -83,7 +83,7 @@ jobs:
         run: |
           branch=${{ github.event.client_payload.slash_command.args.named.branch }}
           if [[ -z "$branch" ]]; then branch="main"; fi
-          echo ::set-output name=branch::$branch
+          echo "branch=$branch" >> $GITHUB_OUTPUT
 
       # Checkout the branch to test
       - uses: actions/checkout@v3
@@ -111,12 +111,12 @@ jobs:
 
       # Add reaction to the comment
       - name: Add reaction
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.PAT }}
           repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
           comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
-          reaction-type: hooray
+          reactions: hooray
 ```
 
 ## Use case: Execute command to modify a pull request branch
@@ -158,12 +158,12 @@ jobs:
           git push
 
       - name: Add reaction
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.PAT }}
           repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
           comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
-          reaction-type: hooray
+          reactions: hooray
 ```
 
 ### rebase
@@ -204,28 +204,28 @@ jobs:
           git push --force-with-lease
 
       - name: Update comment
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.PAT }}
           repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
           comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
           body: |
             >Pull request successfully rebased
-          reaction-type: hooray
+          reactions: hooray
 
   notRebaseable:
     if: github.event.client_payload.pull_request.rebaseable != true
     runs-on: ubuntu-latest
     steps:
       - name: Update comment
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.PAT }}
           repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
           comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
           body: |
             >Pull request is not rebaseable
-          reaction-type: hooray
+          reactions: hooray
 ```
 
 ### black
@@ -264,7 +264,9 @@ jobs:
       # Execute black in check mode
       - name: Black
         id: black
-        run: echo ::set-output name=format::$(black --check --quiet . || echo "true")
+        run: |
+          format=$(black --check --quiet . || echo "true")
+          echo "format=$format" >> $GITHUB_OUTPUT
 
       # Execute black and commit the change to the PR branch
       - name: Commit to the PR branch
@@ -277,12 +279,12 @@ jobs:
           git push
 
       - name: Add reaction
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.PAT }}
           repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
           comment-id: ${{ github.event.client_payload.github.payload.comment.id }}
-          reaction-type: hooray
+          reactions: hooray
 ```
 
 ## Help command
@@ -299,7 +301,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Update comment
-        uses: peter-evans/create-or-update-comment@v2
+        uses: peter-evans/create-or-update-comment@v4
         with:
           token: ${{ secrets.ACTIONS_BOT_TOKEN }}
           repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
@@ -311,5 +313,5 @@ jobs:
             > /ping [\<args\> ...] | Echos back a list of arguments
             > /hello-world-local | Receive a greeting from the world (local execution)
             > /ping-local [\<args\> ...] | Echos back a list of arguments (local execution)
-          reaction-type: hooray
+          reactions: hooray
 ```
