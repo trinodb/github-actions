@@ -102,6 +102,17 @@ const action = async () => {
         await publishReport(createCheck, name, commit, buildRetryingOctokitClient(), count, skipped, annotations, conclusion);
     } else {
         core.info('Not publishing test result due to skip_publishing=true');
+        for (const annotation of annotations) {
+            const properties = {
+                title: annotation.title,
+                file: annotation.path,
+                startLine: annotation.start_line,
+                endLine: annotation.end_line,
+                startColumn: annotation.start_column,
+                endColumn: annotation.end_column
+            };
+            core.error(annotation.message, properties);
+        }
     }
 
     // make conclusion consumable by downstream actions
