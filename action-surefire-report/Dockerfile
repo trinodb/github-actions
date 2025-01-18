@@ -1,4 +1,4 @@
-FROM node:20-bookworm-slim
+FROM --platform=linux/amd64 node:20-bookworm-slim
 
 COPY dist /dist
 
