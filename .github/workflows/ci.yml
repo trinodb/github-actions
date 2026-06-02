@@ -10,6 +10,9 @@ on:
     paths-ignore:
       - 'action-surefire-report/**'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
